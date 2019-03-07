@@ -11,18 +11,18 @@ const (
     OpConst Opcode = iota
 )
 
-type Instructions []byte
+type Insts []byte
 
-type Definition struct {
+type Def struct {
     Name string
     OperandWidths []int
 }
 
-var defs = map[Opcode]*Definition {
+var defs = map[Opcode]*Def {
     OpConst: {"OpConst", []int{2}},
 }
 
-func Lookup(op byte) (*Definition, error) {
+func Lookup(op byte) (*Def, error) {
     def, ok := defs[Opcode(op)]
     if !ok {
         return nil, fmt.Errorf("opcode %d undefined", op)
