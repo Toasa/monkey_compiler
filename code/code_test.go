@@ -25,3 +25,55 @@ func TestMake(t *testing.T) {
         }
     }
 }
+
+func TestInstsString(t *testing.T) {
+    insts := []Insts {
+        Make(OpConst, 1),
+        Make(OpConst, 2),
+        Make(OpConst, 65534),
+    }
+
+    expected := `0000 OpConst 1
+0003 OpConst 2
+0006 OpConst 65534
+`
+
+    concatted := Insts{}
+    for _, ins := range insts {
+        concatted = append(concatted, ins...)
+    }
+
+    if concatted.String() != expected {
+        t.Errorf("instructions wrongly formatted.\nwant=%q\ngot=%q", expected, concatted.String())
+    }
+}
+
+func TestReadOperands(t *testing.T) {
+    tests := []struct {
+        op Opcode
+        operands []int
+        bytesRead int
+    }{
+        {OpConst, []int{65535}, 2},
+    }
+
+    for _, test := range tests {
+        inst := Make(test.op, test.operands...)
+
+        def, err := Lookup(byte(test.op))
+        if err != nil {
+            t.Fatalf("defnition not found")
+        }
+
+        operandsRead, n := ReadOperands(def, inst[1:])
+        if n != test.bytesRead {
+            t.Fatalf("n wrong")
+        }
+
+        for i, want := range test.operands {
+            if operandsRead[i] != want {
+                t.Errorf("operand wrong")
+            }
+        }
+    }
+}
