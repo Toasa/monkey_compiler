@@ -12,19 +12,19 @@ const (
     OpConst Opcode = iota
 )
 
-type Insts []byte
+type Instructions []byte
 
-type Def struct {
+type Definition struct {
     Name string
     OperandWidths []int
 }
 
-var defs = map[Opcode]*Def {
+var definitions = map[Opcode]*Definition {
     OpConst: {"OpConst", []int{2}},
 }
 
-func Lookup(op byte) (*Def, error) {
-    def, ok := defs[Opcode(op)]
+func Lookup(op byte) (*Definition, error) {
+    def, ok := definitions[Opcode(op)]
     if !ok {
         return nil, fmt.Errorf("opcode %d undefined", op)
     }
@@ -32,8 +32,9 @@ func Lookup(op byte) (*Def, error) {
     return def, nil
 }
 
+// operatorとoperandをbytecodeの命令列へencodeする
 func Make(op Opcode, operands ...int) []byte {
-    def, ok := defs[op]
+    def, ok := definitions[op]
     if !ok {
         return []byte{}
     }
@@ -60,10 +61,12 @@ func Make(op Opcode, operands ...int) []byte {
     return inst
 }
 
-func ReadOperands(def *Def, ins Insts) ([]int, int) {
-    operands := make([]int, len(def.OperandWidths))
-    offset := 0
+//　bytecodeの命令列からoperandのスライスへdecodeする
+func ReadOperands(def *Definition, ins Instructions) ([]int, int) {
+    ow := def.OperandWidths
+    operands := make([]int, len(ow))
 
+    offset := 0
     for i, width := range def.OperandWidths {
         switch width {
         case 2:
@@ -75,11 +78,11 @@ func ReadOperands(def *Def, ins Insts) ([]int, int) {
     return operands, offset
 }
 
-func ReadUint16(ins Insts) uint16 {
+func ReadUint16(ins Instructions) uint16 {
     return binary.BigEndian.Uint16(ins)
 }
 
-func (ins Insts)String() string {
+func (ins Instructions)String() string {
     var out bytes.Buffer
 
     i := 0
@@ -90,10 +93,10 @@ func (ins Insts)String() string {
             continue
         }
 
-        // 1byte文のoperatorは飛ばす
+        // 1byte分のoperatorは飛ばす
         operands, read_n := ReadOperands(def, ins[i+1:])
 
-        fmt.Fprintf(&out, "%04d %s\n", i, ins.fmtInst(def, operands))
+        fmt.Fprintf(&out, "%04d %s\n", i, ins.fmtInstruction(def, operands))
 
         i += 1 + read_n
     }
@@ -101,7 +104,7 @@ func (ins Insts)String() string {
     return out.String()
 }
 
-func (ins Insts)fmtInst(def *Def, operands []int) string {
+func (ins Instructions)fmtInstruction(def *Definition, operands []int) string {
     operandCount := len(def.OperandWidths)
 
     if len(operands) != operandCount {

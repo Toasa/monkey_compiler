@@ -12,18 +12,18 @@ import (
 
 type compilerTestCase struct {
     input string
-    expectedConsts []interface{}
-    expectedInsts []code.Insts
+    expectedConstants []interface{}
+    expectedInstructions []code.Instructions
 }
 
 func TestIntegerArithmetic(t *testing.T) {
     tests := []compilerTestCase {
         {
             input: "1 + 2",
-            expectedConsts: []interface{}{1, 2},
-            expectedInsts: []code.Insts{
+            expectedConstants: []interface{}{1, 2},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
                 code.Make(code.OpConst, 1),
-                code.Make(code.OpConst, 2),
             },
         },
     }
@@ -35,6 +35,7 @@ func runCompilerTest(t *testing.T, tests []compilerTestCase) {
     t.Helper()
 
     for _, test := range tests {
+
         program := parse(test.input)
 
         compiler := New()
@@ -46,14 +47,14 @@ func runCompilerTest(t *testing.T, tests []compilerTestCase) {
 
         bc := compiler.Bytecode()
 
-        err = testInsts(test.expectedInsts, bc.Insts)
+        err = testInstructions(test.expectedInstructions, bc.Instructions)
         if err != nil {
-            t.Fatalf("testInsts failed: %s", err)
+            t.Fatalf("testInstructions failed: %s", err)
         }
 
-        err = testConsts(t, test.expectedConsts, bc.Consts)
+        err = testConstants(t, test.expectedConstants, bc.Constants)
         if err != nil {
-            t.Fatalf("testConsts failed: %s", err)
+            t.Fatalf("testConstants failed: %s", err)
         }
     }
 }
@@ -64,23 +65,23 @@ func parse(input string) *ast.Program {
     return p.ParseProgram()
 }
 
-func testInsts(expected []code.Insts, actual code.Insts) error {
-    concatted := concatInsts(expected)
+func testInstructions(expected []code.Instructions, actual code.Instructions) error {
+    concatted := concatInstructions(expected)
     if len(actual) != len(concatted) {
         return fmt.Errorf("wrong instructions length.\nwant=%q\ngot=%q", concatted, actual)
     }
 
     for i, ins := range concatted {
         if actual[i] != ins {
-            return fmt.Errorf("wrong instruction")
+            return fmt.Errorf("wrong instruction at %d.\nwant=%q\ngot=%q", i, concatted, actual)
         }
     }
 
     return nil
 }
 
-func concatInsts(s []code.Insts) code.Insts {
-    out := code.Insts{}
+func concatInstructions(s []code.Instructions) code.Instructions {
+    out := code.Instructions{}
 
     for _, ins := range s {
         out = append(out, ins...)
@@ -89,7 +90,7 @@ func concatInsts(s []code.Insts) code.Insts {
     return out
 }
 
-func testConsts(t *testing.T, expected []interface{}, actual []object.Object) error {
+func testConstants(t *testing.T, expected []interface{}, actual []object.Object) error {
     if len(expected) != len(actual) {
         return fmt.Errorf("wrong number of constants")
     }

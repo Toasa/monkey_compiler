@@ -27,7 +27,7 @@ func TestMake(t *testing.T) {
 }
 
 func TestInstsString(t *testing.T) {
-    insts := []Insts {
+    insts := []Instructions {
         Make(OpConst, 1),
         Make(OpConst, 2),
         Make(OpConst, 65534),
@@ -38,7 +38,7 @@ func TestInstsString(t *testing.T) {
 0006 OpConst 65534
 `
 
-    concatted := Insts{}
+    concatted := Instructions{}
     for _, ins := range insts {
         concatted = append(concatted, ins...)
     }
