@@ -7,6 +7,7 @@ import (
 )
 
 type Compiler struct {
+    // operator + indices of operands(the index start without operator)
     instructions code.Instructions
     // constants pool
     constants []object.Object
@@ -70,7 +71,9 @@ func (c *Compiler) addConstant(obj object.Object) int {
     return len(c.constants) - 1
 }
 
+// generate an instruction and add it to the result
 func (c *Compiler) emit(op code.Opcode, operands ...int) int {
+    // operand... are each index of it
     ins := code.Make(op, operands...)
     pos := c.addInstruction(ins)
     return pos
