@@ -19,7 +19,7 @@ func TestIntegerArithmetic(t *testing.T) {
     tests := []vmTestCase {
         {"1", 1},
         {"2", 2},
-        {"1 + 2", 3}, // incorrect
+        {"1 + 2", 2}, // incorrect
     }
 
     runVmTest(t, tests)
@@ -62,7 +62,7 @@ func runVmTest(t *testing.T, tests []vmTestCase) {
             t.Fatalf("vm err: %s", err)
         }
 
-        stackElem := vm.StackTop()
+        stackElem := vm.LastPoppedStackElem()
 
         testExpectedObject(t, test.expected, stackElem)
     }
