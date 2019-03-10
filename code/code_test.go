@@ -29,14 +29,14 @@ func TestMake(t *testing.T) {
 
 func TestInstsString(t *testing.T) {
     insts := []Instructions {
-        Make(OpConst, 1),
+        Make(OpAdd),
         Make(OpConst, 2),
         Make(OpConst, 65534),
     }
 
-    expected := `0000 OpConst 1
-0003 OpConst 2
-0006 OpConst 65534
+    expected := `0000 OpAdd
+0001 OpConst 2
+0004 OpConst 65534
 `
 
     concatted := Instructions{}
