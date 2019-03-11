@@ -19,7 +19,14 @@ func TestIntegerArithmetic(t *testing.T) {
     tests := []vmTestCase {
         {"1", 1},
         {"2", 2},
-        {"1 + 2", 2}, // incorrect
+        {"1 + 2", 3},
+        {"1 - 2", -1},
+        {"1 * 2", 2},
+        {"4 / 2", 2},
+        {"50 / 2 * 2 + 10 - 5", 55},
+        {"5 * (2 + 10)", 60},
+        {"(1 + 2) * (3 + 4)", 21},
+        {"1 + 2 * 3 + 4", 11},
     }
 
     runVmTest(t, tests)
@@ -38,7 +45,7 @@ func testIntegerObject(expected int64, actual object.Object) error {
     }
 
     if result.Value != expected {
-        return fmt.Errorf("incorrect value")
+        return fmt.Errorf("expected %d, but got %d", expected, result.Value)
     }
 
     return nil
@@ -75,7 +82,7 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
     case int:
         err := testIntegerObject(int64(expected), actual)
         if err != nil {
-            t.Errorf("testIntegerObject failed")
+            t.Errorf("testIntegerObject failed, %s", err)
         }
     }
 }

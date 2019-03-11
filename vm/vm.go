@@ -41,13 +41,11 @@ func (vm *VM) Run() error {
                 return err
             }
 
-        case code.OpAdd:
-            r := vm.pop()
-            l := vm.pop()
-            val := l.(*object.Integer).Value + r.(*object.Integer).Value
-            o := &object.Integer{Value: val}
-            vm.push(o)
-            ip++
+        case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+            err := vm.executeBinaryOperation(op)
+            if err != nil {
+                return err
+            }
 
         case code.OpPop:
             vm.pop()
@@ -55,6 +53,40 @@ func (vm *VM) Run() error {
     }
 
     return nil
+}
+
+func (vm *VM) executeBinaryOperation(op code.Opcode) error {
+    r := vm.pop()
+    l := vm.pop()
+    ltype := l.Type()
+    rtype := r.Type()
+
+    if ltype == object.INTEGER_OBJ && rtype == object.INTEGER_OBJ {
+        return vm.executeBinaryIntegerOperation(op, l, r)
+    }
+
+    return fmt.Errorf("invalid ltype or rtype")
+}
+
+func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, l, r object.Object) error {
+    lval := l.(*object.Integer).Value
+    rval := r.(*object.Integer).Value
+
+    var val int64
+    switch op {
+    case code.OpAdd:
+        val = lval + rval
+    case code.OpSub:
+        val = lval - rval
+    case code.OpMul:
+        val = lval * rval
+    case code.OpDiv:
+        val = lval / rval
+    default:
+        return fmt.Errorf("invalid operator")
+    }
+    o := &object.Integer{Value: val}
+    return vm.push(o)
 }
 
 func (vm *VM) StackTop() object.Object {

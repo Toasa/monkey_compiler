@@ -42,7 +42,7 @@ func Start(in io.Reader, out io.Writer) {
             continue
         }
 
-        stackTop = machine.StackTpp()
+        stackTop = machine.LastPoppedStackElem()
         io.WriteString(out, stackTop.Inspect())
         io.WriteString(out, "\n")
     }
