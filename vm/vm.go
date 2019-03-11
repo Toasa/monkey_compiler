@@ -62,6 +62,18 @@ func (vm *VM) Run() error {
                 return err
             }
 
+        case code.OpBang:
+            err := vm.executeBangOperator()
+            if err != nil {
+                return nil
+            }
+
+        case code.OpMinus:
+            err := vm.executeMinusOperator()
+            if err != nil {
+                return err
+            }
+
         case code.OpEq, code.OpNE, code.OpGT:
             err := vm.executeCompatison(op)
             if err != nil {
@@ -142,6 +154,29 @@ func (vm *VM) executeIntegerComparison(op code.Opcode, l, r object.Object) error
     default:
         return fmt.Errorf("unknown operator")
     }
+}
+
+func (vm *VM) executeBangOperator() error {
+    operand := vm.pop()
+
+    switch operand {
+    case True:
+        return vm.push(False)
+    case False:
+        return vm.push(True)
+    default:
+        return vm.push(False)
+    }
+}
+
+func (vm *VM) executeMinusOperator() error {
+    operand := vm.pop()
+    if operand.Type() != object.INTEGER_OBJ {
+        return fmt.Errorf("invalid operand")
+    }
+
+    value := operand.(*object.Integer).Value
+    return vm.push(&object.Integer{Value: -value})
 }
 
 func nativeBoolToBooleanObject(b bool) *object.Boolean {
