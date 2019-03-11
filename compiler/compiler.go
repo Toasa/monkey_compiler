@@ -70,6 +70,15 @@ func (c *Compiler) Compile(node ast.Node) error {
     case *ast.IntegerLiteral:
         integer := &object.Integer{Value: node.Value}
         c.emit(code.OpConst, c.addConstant(integer))
+
+    case *ast.Boolean:
+        var opc code.Opcode
+        if node.Value {
+            opc = code.OpTrue
+        } else {
+            opc = code.OpFalse
+        }
+        c.emit(opc)
     }
     return nil
 }

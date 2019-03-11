@@ -32,6 +32,15 @@ func TestIntegerArithmetic(t *testing.T) {
     runVmTest(t, tests)
 }
 
+func TestBooleanExpressions(t *testing.T) {
+    tests := []vmTestCase {
+        {"true", true},
+        {"false", false},
+    }
+
+    runVmTest(t, tests)
+}
+
 func parse(input string) *ast.Program {
     l := lexer.New(input)
     p := parser.New(l)
@@ -46,6 +55,19 @@ func testIntegerObject(expected int64, actual object.Object) error {
 
     if result.Value != expected {
         return fmt.Errorf("expected %d, but got %d", expected, result.Value)
+    }
+
+    return nil
+}
+
+func testBooleanObject(expected bool, actual object.Object) error {
+    b, ok := actual.(*object.Boolean)
+    if !ok {
+        return fmt.Errorf("type assertion error")
+    }
+
+    if b.Value != expected {
+        return fmt.Errorf("expected value faild")
     }
 
     return nil
@@ -83,6 +105,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
         err := testIntegerObject(int64(expected), actual)
         if err != nil {
             t.Errorf("testIntegerObject failed, %s", err)
+        }
+    case bool:
+        err := testBooleanObject(expected, actual)
+        if err != nil {
+            t.Errorf("testBooleanObject faild, %s", err)
         }
     }
 }
