@@ -17,6 +17,9 @@ const (
     OpPop
     OpTrue
     OpFalse
+    OpEq
+    OpNE
+    OpGT
 )
 
 type Instructions []byte
@@ -35,6 +38,9 @@ var definitions = map[Opcode]*Definition {
     OpPop: {"OpPop", []int{}},
     OpTrue: {"OpTrue", []int{}},
     OpFalse: {"OpFalse", []int{}},
+    OpEq: {"OpEq", []int{}},
+    OpNE: {"OpNE", []int{}},
+    OpGT: {"OpGT", []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {

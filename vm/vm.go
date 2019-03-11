@@ -62,6 +62,12 @@ func (vm *VM) Run() error {
                 return err
             }
 
+        case code.OpEq, code.OpNE, code.OpGT:
+            err := vm.executeCompatison(op)
+            if err != nil {
+                return err
+            }
+
         case code.OpPop:
             vm.pop()
         }
@@ -102,6 +108,47 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, l, r object.Object) 
     }
     o := &object.Integer{Value: val}
     return vm.push(o)
+}
+
+func (vm *VM) executeCompatison(op code.Opcode) error {
+    rExp := vm.pop()
+    lExp := vm.pop()
+
+    if lExp.Type() == object.INTEGER_OBJ || rExp.Type() == object.INTEGER_OBJ {
+        return vm.executeIntegerComparison(op, lExp, rExp)
+    }
+
+    switch op {
+    case code.OpEq:
+        return vm.push(nativeBoolToBooleanObject(lExp == rExp))
+    case code.OpNE:
+        return vm.push(nativeBoolToBooleanObject(lExp != rExp))
+    default:
+        return fmt.Errorf("unknown operator")
+    }
+}
+
+func (vm *VM) executeIntegerComparison(op code.Opcode, l, r object.Object) error {
+    lval := l.(*object.Integer).Value
+    rval := r.(*object.Integer).Value
+
+    switch op {
+    case code.OpEq:
+        return vm.push(nativeBoolToBooleanObject(lval == rval))
+    case code.OpNE:
+        return vm.push(nativeBoolToBooleanObject(lval != rval))
+    case code.OpGT:
+        return vm.push(nativeBoolToBooleanObject(lval > rval))
+    default:
+        return fmt.Errorf("unknown operator")
+    }
+}
+
+func nativeBoolToBooleanObject(b bool) *object.Boolean {
+    if b {
+        return True
+    }
+    return False
 }
 
 func (vm *VM) StackTop() object.Object {

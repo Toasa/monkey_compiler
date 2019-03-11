@@ -81,6 +81,66 @@ func TestBooleanExpressions(t *testing.T) {
                 code.Make(code.OpPop),
             },
         },
+        {
+            input: "1 > 2",
+            expectedConstants: []interface{}{1, 2},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
+                code.Make(code.OpConst, 1),
+                code.Make(code.OpGT),
+                code.Make(code.OpPop),
+            },
+        },
+        {
+            input: "1 < 2",
+            expectedConstants: []interface{}{2, 1},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
+                code.Make(code.OpConst, 1),
+                code.Make(code.OpGT),
+                code.Make(code.OpPop),
+            },
+        },
+        {
+            input: "1 == 2",
+            expectedConstants: []interface{}{1, 2},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
+                code.Make(code.OpConst, 1),
+                code.Make(code.OpEq),
+                code.Make(code.OpPop),
+            },
+        },
+        {
+            input: "1 != 2",
+            expectedConstants: []interface{}{1, 2},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
+                code.Make(code.OpConst, 1),
+                code.Make(code.OpNE),
+                code.Make(code.OpPop),
+            },
+        },
+        {
+            input: "true == false",
+            expectedConstants: []interface{}{},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpTrue),
+                code.Make(code.OpFalse),
+                code.Make(code.OpEq),
+                code.Make(code.OpPop),
+            },
+        },
+        {
+            input: "true != false",
+            expectedConstants: []interface{}{},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpTrue),
+                code.Make(code.OpFalse),
+                code.Make(code.OpNE),
+                code.Make(code.OpPop),
+            },
+        },
     }
 
     runCompilerTest(t, tests)
