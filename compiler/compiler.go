@@ -8,10 +8,16 @@ import (
 )
 
 type Compiler struct {
-    // operator + indices of operands(the index start without operator)
+    // kinds of instructions
+    // * operator(1byte)
+    // * operator(1byte) + indices of operands(the index(2byte) start without operator)
     instructions code.Instructions
+
     // constants pool
     constants []object.Object
+
+    lastInstruction EmitedInstruction
+    prevInstruction EmitedInstruction
 }
 
 type Bytecode struct {
@@ -19,10 +25,17 @@ type Bytecode struct {
     Constants []object.Object
 }
 
+type EmitedInstruction struct {
+    Opcode code.Opcode
+    Position int
+}
+
 func New() *Compiler {
     return &Compiler{
         instructions: code.Instructions{},
         constants: []object.Object{},
+        lastInstruction: EmitedInstruction{},
+        prevInstruction: EmitedInstruction{},
     }
 }
 
@@ -42,6 +55,14 @@ func (c *Compiler) Compile(node ast.Node) error {
             return err
         }
         c.emit(code.OpPop)
+
+    case *ast.BlockStatement:
+        for _, stmt := range node.Statements {
+            err := c.Compile(stmt)
+            if err != nil {
+                return nil
+            }
+        }
 
     case *ast.InfixExpression:
 
@@ -92,7 +113,7 @@ func (c *Compiler) Compile(node ast.Node) error {
         if err != nil {
             return err
         }
-        
+
         switch node.Operator {
         case "!":
             c.emit(code.OpBang)
@@ -101,6 +122,26 @@ func (c *Compiler) Compile(node ast.Node) error {
         default:
             return fmt.Errorf("unknown operator")
         }
+
+    case *ast.IfExpression:
+        err := c.Compile(node.Cond)
+        if err != nil {
+            return err
+        }
+
+        jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+        err = c.Compile(node.Cons)
+        if err != nil {
+            return err
+        }
+
+        if c.lastInstructionIsPop() {
+            c.removeLastPop()
+        }
+
+        afterConsPos := len(c.instructions)
+        c.changeOperand(jumpNotTruthyPos, afterConsPos)
 
     case *ast.IntegerLiteral:
         integer := &object.Integer{Value: node.Value}
@@ -125,21 +166,51 @@ func (c *Compiler) Bytecode() *Bytecode {
     }
 }
 
-func (c *Compiler) addConstant(obj object.Object) int {
-    c.constants = append(c.constants, obj)
-    return len(c.constants) - 1
-}
-
-// generate an instruction and add it to the result
+// Generate an instruction and add it to the result.
+// Return value is the index of new added instruction.
 func (c *Compiler) emit(op code.Opcode, operands ...int) int {
     // operand... are each index of it
     ins := code.Make(op, operands...)
     pos := c.addInstruction(ins)
+    c.setLastInstruction(op, pos)
+
     return pos
+}
+
+func (c *Compiler) setLastInstruction(op code.Opcode, pos int) {
+    last := EmitedInstruction{Opcode: op, Position: pos}
+    c.prevInstruction = c.lastInstruction
+    c.lastInstruction = last
 }
 
 func (c *Compiler) addInstruction(ins []byte) int {
     posNewInstruction := len(c.instructions)
     c.instructions = append(c.instructions, ins...)
     return posNewInstruction
+}
+
+func (c *Compiler) addConstant(obj object.Object) int {
+    c.constants = append(c.constants, obj)
+    return len(c.constants) - 1
+}
+
+func (c *Compiler) lastInstructionIsPop() bool {
+    return c.lastInstruction.Opcode == code.OpPop
+}
+
+func (c *Compiler) removeLastPop() {
+    c.instructions = c.instructions[: c.lastInstruction.Position]
+    c.lastInstruction = c.prevInstruction
+}
+
+func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+    for i := 0; i < len(newInstruction); i++ {
+        c.instructions[pos + i] = newInstruction[i]
+    }
+}
+
+func (c *Compiler) changeOperand(opPos int, operand int) {
+    op := code.Opcode(c.instructions[opPos])
+    newInstruction := code.Make(op, operand)
+    c.replaceInstruction(opPos, newInstruction)
 }
