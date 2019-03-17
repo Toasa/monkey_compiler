@@ -9,8 +9,9 @@ import (
 
 type Compiler struct {
     // kinds of instructions
-    // * operator(1byte)
-    // * operator(1byte) + indices of operands(the index(2byte) start without operator)
+    // * operator(OpConst: 1byte) + indices of operands(the index(2byte) start without operator)
+    // * operator(OpJump: 1byte) + dstAddress(2byte)
+    // * operator(otherwise: 1byte)
     instructions code.Instructions
 
     // constants pool
@@ -135,13 +136,30 @@ func (c *Compiler) Compile(node ast.Node) error {
         if err != nil {
             return err
         }
-
         if c.lastInstructionIsPop() {
             c.removeLastPop()
         }
 
-        afterConsPos := len(c.instructions)
-        c.changeOperand(jumpNotTruthyPos, afterConsPos)
+        if node.Alt == nil {
+            afterConsPos := len(c.instructions)
+            c.changeOperand(jumpNotTruthyPos, afterConsPos)
+        } else {
+            jumpPos := c.emit(code.OpJump, 9999)
+
+            afterConsPos := len(c.instructions)
+            c.changeOperand(jumpNotTruthyPos, afterConsPos)
+
+            err = c.Compile(node.Alt)
+            if err != nil {
+                return err
+            }
+            if c.lastInstructionIsPop() {
+                c.removeLastPop()
+            }
+
+            afterAltPos := len(c.instructions)
+            c.changeOperand(jumpPos, afterAltPos)
+        }
 
     case *ast.IntegerLiteral:
         integer := &object.Integer{Value: node.Value}
