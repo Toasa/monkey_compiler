@@ -140,15 +140,14 @@ func (c *Compiler) Compile(node ast.Node) error {
             c.removeLastPop()
         }
 
+        jumpPos := c.emit(code.OpJump, 9999)
+
+        afterConsPos := len(c.instructions)
+        c.changeOperand(jumpNotTruthyPos, afterConsPos)
+
         if node.Alt == nil {
-            afterConsPos := len(c.instructions)
-            c.changeOperand(jumpNotTruthyPos, afterConsPos)
+            c.emit(code.OpNull)
         } else {
-            jumpPos := c.emit(code.OpJump, 9999)
-
-            afterConsPos := len(c.instructions)
-            c.changeOperand(jumpNotTruthyPos, afterConsPos)
-
             err = c.Compile(node.Alt)
             if err != nil {
                 return err
@@ -156,10 +155,10 @@ func (c *Compiler) Compile(node ast.Node) error {
             if c.lastInstructionIsPop() {
                 c.removeLastPop()
             }
-
-            afterAltPos := len(c.instructions)
-            c.changeOperand(jumpPos, afterAltPos)
         }
+        
+        afterAltPos := len(c.instructions)
+        c.changeOperand(jumpPos, afterAltPos)
 
     case *ast.IntegerLiteral:
         integer := &object.Integer{Value: node.Value}

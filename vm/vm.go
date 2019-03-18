@@ -18,6 +18,7 @@ type VM struct{
 
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+var Null =&object.Null{}
 
 func New(bytecode *compiler.Bytecode) *VM {
     vm := &VM{
