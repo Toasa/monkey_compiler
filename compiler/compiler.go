@@ -55,6 +55,9 @@ func (c *Compiler) Compile(node ast.Node) error {
         if err != nil {
             return err
         }
+        // Pop are needed immediately following the expressionstatement(es).
+        // Because the value that es produce is not reused by definition.
+        // (reuse means push a value on the stack)
         c.emit(code.OpPop)
 
     case *ast.BlockStatement:
@@ -156,7 +159,7 @@ func (c *Compiler) Compile(node ast.Node) error {
                 c.removeLastPop()
             }
         }
-        
+
         afterAltPos := len(c.instructions)
         c.changeOperand(jumpPos, afterAltPos)
 
