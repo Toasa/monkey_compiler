@@ -96,6 +96,12 @@ func (vm *VM) Run() error {
             if !isTruthy(cond) {
                 ip = int(jumpDst) - 1
             }
+
+        case code.OpNull:
+            err := vm.push(Null)
+            if err != nil {
+                return err
+            }
         }
     }
 
