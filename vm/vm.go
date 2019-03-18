@@ -32,6 +32,7 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 func (vm *VM) Run() error {
     for ip := 0; ip < len(vm.instructions); ip++ {
+
         op := code.Opcode(vm.instructions[ip])
 
         switch op {
@@ -82,6 +83,18 @@ func (vm *VM) Run() error {
 
         case code.OpPop:
             vm.pop()
+
+        case code.OpJump:
+            jumpDst := code.ReadUint16(vm.instructions[ip+1:])
+            ip = int(jumpDst) - 1
+        case code.OpJumpNotTruthy:
+            jumpDst := code.ReadUint16(vm.instructions[ip+1:])
+            ip += 2
+
+            cond := vm.pop()
+            if !isTruthy(cond) {
+                ip = int(jumpDst) - 1
+            }
         }
     }
 
@@ -214,4 +227,13 @@ func (vm *VM) pop() object.Object {
 
 func (vm *VM) LastPoppedStackElem() object.Object {
     return vm.stack[vm.sp]
+}
+
+func isTruthy(obj object.Object) bool {
+    switch obj := obj.(type) {
+    case *object.Boolean:
+        return obj.Value
+    default:
+        return true
+    }
 }
