@@ -11,6 +11,7 @@ type Compiler struct {
     // kinds of instructions
     // * operator(OpConst: 1byte) + indices of operands(the index(2byte) start without operator)
     // * operator(OpJump: 1byte) + dstAddress(2byte)
+    // * operator(OpGetGlobal: 1byte) + index of operand(2byte)
     // * operator(otherwise: 1byte)
     instructions code.Instructions
 
