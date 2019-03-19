@@ -19,6 +19,8 @@ type Compiler struct {
 
     lastInstruction EmitedInstruction
     prevInstruction EmitedInstruction
+
+    symbolTable *SymbolTable
 }
 
 type Bytecode struct {
@@ -37,6 +39,7 @@ func New() *Compiler {
         constants: []object.Object{},
         lastInstruction: EmitedInstruction{},
         prevInstruction: EmitedInstruction{},
+        symbolTable: NewSymbolTable(),
     }
 }
 
@@ -49,6 +52,14 @@ func (c *Compiler) Compile(node ast.Node) error {
                 return err
             }
         }
+
+    case *ast.LetStatement:
+        err := c.Compile(node.Value)
+        if err != nil {
+            return err
+        }
+        symbol := c.symbolTable.Define(node.Name.Value)
+        c.emit(code.OpSetGlobal, symbol.Index)
 
     case *ast.ExpressionStatement:
         err := c.Compile(node.Expression)
@@ -67,6 +78,26 @@ func (c *Compiler) Compile(node ast.Node) error {
                 return nil
             }
         }
+
+    case *ast.IntegerLiteral:
+        integer := &object.Integer{Value: node.Value}
+        c.emit(code.OpConst, c.addConstant(integer))
+
+    case *ast.Identifier:
+        symbol, ok := c.symbolTable.Resolve(node.Value)
+        if !ok {
+            return fmt.Errorf("undefined variable %s", node.Value)
+        }
+        c.emit(code.OpGetGlobal, symbol.Index)
+
+    case *ast.Boolean:
+        var opc code.Opcode
+        if node.Value {
+            opc = code.OpTrue
+        } else {
+            opc = code.OpFalse
+        }
+        c.emit(opc)
 
     case *ast.InfixExpression:
 
@@ -162,19 +193,6 @@ func (c *Compiler) Compile(node ast.Node) error {
 
         afterAltPos := len(c.instructions)
         c.changeOperand(jumpPos, afterAltPos)
-
-    case *ast.IntegerLiteral:
-        integer := &object.Integer{Value: node.Value}
-        c.emit(code.OpConst, c.addConstant(integer))
-
-    case *ast.Boolean:
-        var opc code.Opcode
-        if node.Value {
-            opc = code.OpTrue
-        } else {
-            opc = code.OpFalse
-        }
-        c.emit(opc)
     }
     return nil
 }
