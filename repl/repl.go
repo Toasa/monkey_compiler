@@ -11,6 +11,10 @@ import (
 func Start(in io.Reader, out io.Writer) {
     scanner := bufio.NewScanner(in)
 
+    constants := []object.Object{}
+    globals := make([]object.Object, vm.GlobalsSize)
+    symbolTable := compiler.NewSymbolTable()
+
     for {
         fmt.Printf(PROMPT)
         scanned := scanner.Scan()
@@ -28,14 +32,17 @@ func Start(in io.Reader, out io.Writer) {
             continue
         }
 
-        comp := compiler.New()
+        comp := compiler.NewWithState(symbolTable, constants)
         err := comp.Compile(program)
         if err != nil {
             fmt.Fprintf(out, "Compilation failed")
             continue
         }
 
-        machine := vm.New(comp.Bytecode())
+        code := comp.Bytecode()
+        constants := code.Constants
+
+        machine := vm.NewWithGlobalsStore(code, constants)
         err = machine.Run()
         if err != nil {
             fmt.Fprintf(out, "Execution bytecode failed")
