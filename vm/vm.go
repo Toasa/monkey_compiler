@@ -99,7 +99,7 @@ func (vm *VM) Run() error {
             }
 
         case code.OpEq, code.OpNE, code.OpGT:
-            err := vm.executeCompatison(op)
+            err := vm.executeComparison(op)
             if err != nil {
                 return err
             }
@@ -118,6 +118,18 @@ func (vm *VM) Run() error {
             cond := vm.pop()
             if !isTruthy(cond) {
                 ip = int(jumpDst) - 1
+            }
+
+        case code.OpArray:
+            len := int(code.ReadUint16(vm.instructions[ip+1:]))
+            ip += 2
+
+            arr := vm.buildArray(vm.sp - len, vm.sp)
+            vm.sp -= len
+
+            err := vm.push(arr)
+            if err != nil {
+                return err
             }
 
         case code.OpNull:
@@ -244,6 +256,16 @@ func nativeBoolToBooleanObject(b bool) *object.Boolean {
         return True
     }
     return False
+}
+
+func (vm *VM) buildArray(startIndex int, endIndex int) object.Object {
+    elems := make([]object.Object, endIndex - startIndex)
+
+    for i := startIndex; i < endIndex; i++ {
+        elems[i - startIndex] = vm.stack[i]
+    }
+
+    return &object.Array{Elems: elems}
 }
 
 func (vm *VM) StackTop() object.Object {
