@@ -26,6 +26,7 @@ const (
     OpBang
     OpJumpNotTruthy
     OpJump
+    OpArray
     OpNull
 )
 
@@ -54,6 +55,7 @@ var definitions = map[Opcode]*Definition {
     OpBang: {"OpBang", []int{}},
     OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
     OpJump: {"OpJump", []int{2}},
+    OpArray: {"OpArray", []int{2}},
     OpNull: {"OpNull", []int{}},
 }
 

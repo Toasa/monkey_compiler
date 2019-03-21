@@ -12,6 +12,7 @@ type Compiler struct {
     // * operator(OpConst: 1byte) + indices of operands(the index(2byte) start without operator)
     // * operator(OpJump: 1byte) + dstAddress(2byte)
     // * operator(OpGetGlobal: 1byte) + index of operand(2byte)
+    // * operator(OpArray: 1byte) + length of array(2byte)
     // * operator(otherwise: 1byte)
     instructions code.Instructions
 
@@ -205,6 +206,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 
         afterAltPos := len(c.instructions)
         c.changeOperand(jumpPos, afterAltPos)
+
+    case *ast.ArrayLiteral:
+        for _, elem := range node.Elems {
+            err := c.Compile(elem)
+            if err != nil {
+                return nil
+            }
+        }
+
+        c.emit(code.OpArray, len(node.Elems))
     }
     return nil
 }
