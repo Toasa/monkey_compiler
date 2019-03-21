@@ -47,7 +47,7 @@ func New() *Compiler {
 func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
     compiler := New()
     compiler.symbolTable = s
-    conpiler.constants = constants
+    compiler.constants = constants
     return compiler
 }
 

@@ -268,6 +268,31 @@ func TestGlobalLetStatements(t *testing.T) {
     runCompilerTest(t, tests)
 }
 
+func TestStringExpressions(t *testing.T) {
+    tests := []compilerTestCase {
+        {
+            input: `"monkey"`,
+            expectedConstants: []interface{}{"monkey"},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
+                code.Make(code.OpPop),
+            },
+        },
+        {
+            input: `"mon" + "key"`,
+            expectedConstants: []interface{}{"mon", "key"},
+            expectedInstructions: []code.Instructions{
+                code.Make(code.OpConst, 0),
+                code.Make(code.OpConst, 1),
+                code.Make(code.OpAdd),
+                code.Make(code.OpPop),
+            },
+        },
+    }
+
+    runCompilerTest(t, tests)
+}
+
 func runCompilerTest(t *testing.T, tests []compilerTestCase) {
     t.Helper()
 
