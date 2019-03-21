@@ -364,6 +364,11 @@ func testConstants(t *testing.T, expected []interface{}, actual []object.Object)
             if err != nil {
                 return fmt.Errorf("incorrect value")
             }
+        case string:
+            err := testStringObject(cons, actual[i])
+            if err != nil {
+                return fmt.Errorf("incorrect value")
+            }
         }
     }
 
@@ -377,6 +382,19 @@ func testIntegerObject(expected int64, actual object.Object) error {
     }
 
     if expected != result.Value {
+        return fmt.Errorf("incorrect value")
+    }
+
+    return nil
+}
+
+func testStringObject(expected string, actual object.Object) error {
+    s, ok := actual.(*object.String)
+    if !ok {
+        return fmt.Errorf("type assertion error")
+    }
+
+    if expected != s.Value {
         return fmt.Errorf("incorrect value")
     }
 

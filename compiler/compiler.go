@@ -91,6 +91,10 @@ func (c *Compiler) Compile(node ast.Node) error {
         integer := &object.Integer{Value: node.Value}
         c.emit(code.OpConst, c.addConstant(integer))
 
+    case *ast.StringLiteral:
+        str := &object.String{Value: node.Value}
+        c.emit(code.OpConst, c.addConstant(str))
+
     case *ast.Identifier:
         symbol, ok := c.symbolTable.Resolve(node.Value)
         if !ok {
