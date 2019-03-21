@@ -2,6 +2,7 @@ package compiler
 
 import (
     "fmt"
+    "sort"
     "monkey_interpreter/ast"
     "monkey_interpreter/object"
     "monkey_compiler/code"
@@ -216,6 +217,31 @@ func (c *Compiler) Compile(node ast.Node) error {
         }
 
         c.emit(code.OpArray, len(node.Elems))
+
+    case *ast.HashLiteral:
+        // Go doesn't have the immutable order when iterating a map.
+        keys := []ast.Expression{}
+        for k := range node.Pairs {
+            keys = append(keys, k)
+        }
+        sort.Slice(keys, func(i, j int) bool {
+            return keys[i].String() < keys[j].String()
+        })
+
+        for _, k := range keys {
+            err := c.Compile(k)
+            if err != nil {
+                return nil
+            }
+
+            err = c.Compile(node.Pairs[k])
+            if err != nil {
+                return nil
+            }
+        }
+
+        c.emit(code.OpHash, len(node.Pairs) * 2)
+
     }
     return nil
 }
