@@ -180,7 +180,7 @@ func (vm *VM) executeBinaryStringOperation(op code.Opcode, l, r object.Object) e
     return vm.push(o)
 }
 
-func (vm *VM) executeCompatison(op code.Opcode) error {
+func (vm *VM) executeComparison(op code.Opcode) error {
     rExp := vm.pop()
     lExp := vm.pop()
 
