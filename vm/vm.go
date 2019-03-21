@@ -141,6 +141,10 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
         return vm.executeBinaryIntegerOperation(op, l, r)
     }
 
+    if ltype == object.STRING_OBJ && rtype == object.STRING_OBJ {
+        return vm.executeBinaryStringOperation(op, l, r)
+    }
+
     return fmt.Errorf("invalid ltype or rtype")
 }
 
@@ -162,6 +166,17 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, l, r object.Object) 
         return fmt.Errorf("invalid operator")
     }
     o := &object.Integer{Value: val}
+    return vm.push(o)
+}
+
+func (vm *VM) executeBinaryStringOperation(op code.Opcode, l, r object.Object) error {
+    lval := l.(*object.String).Value
+    rval := r.(*object.String).Value
+
+    if op != code.OpAdd {
+        return fmt.Errorf("String has only `+` operator")
+    }
+    o := &object.String{Value: lval + rval}
     return vm.push(o)
 }
 
