@@ -212,7 +212,7 @@ func (c *Compiler) Compile(node ast.Node) error {
         for _, elem := range node.Elems {
             err := c.Compile(elem)
             if err != nil {
-                return nil
+                return err
             }
         }
 
@@ -231,16 +231,29 @@ func (c *Compiler) Compile(node ast.Node) error {
         for _, k := range keys {
             err := c.Compile(k)
             if err != nil {
-                return nil
+                return err
             }
 
             err = c.Compile(node.Pairs[k])
             if err != nil {
-                return nil
+                return err
             }
         }
 
         c.emit(code.OpHash, len(node.Pairs) * 2)
+
+    case *ast.IndexExpression:
+        err := c.Compile(node.Left)
+        if err != nil {
+            return err
+        }
+
+        err = c.Compile(node.Index)
+        if err != nil {
+            return err
+        }
+
+        c.emit(code.OpIndex)
 
     }
     return nil

@@ -28,6 +28,7 @@ const (
     OpJump
     OpArray
     OpHash
+    OpIndex
     OpNull
 )
 
@@ -58,6 +59,7 @@ var definitions = map[Opcode]*Definition {
     OpJump: {"OpJump", []int{2}},
     OpArray: {"OpArray", []int{2}},
     OpHash: {"OpHash", []int{2}},
+    OpIndex: {"OpIndex", []int{}},
     OpNull: {"OpNull", []int{}},
 }
 
